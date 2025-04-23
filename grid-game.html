@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구구단 숫자판 점프 게임</title>
+    <style>
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 100, 0.2);
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+        }
+        .header {
+            background-color: #6a5acd;
+            color: white;
+            margin: -20px -20px 20px -20px;
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            position: relative;
+        }
+        h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        .subtitle {
+            font-size: 16px;
+            margin-top: 5px;
+            color: #ffd700;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .number-select {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .number-btn {
+            background-color: #e0e0ff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .number-btn:hover {
+            background-color: #d0d0ff;
+            transform: scale(1.1);
+        }
+        .number-btn.active {
+            background-color: #6a5acd;
+            color: white;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 3px;
+            margin: 0 auto 20px;
+            max-width: 500px;
+        }
+        .grid-cell {
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .grid-cell:hover {
+            background-color: #e0e0e0;
+        }
+        .grid-cell.highlighted {
+            color: white;
+            font-weight: bold;
+            transform: scale(0.95);
+            z-index: 1;
+        }
+        .character {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ff9966;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            z-index: 10;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+        .equation {
+            margin: 15px 0;
+            font-size: 24px;
+            font-weight: bold;
+            height: 36px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .btn {
+            background-color: #6a5acd;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background-color: #5a4abf;
+            transform: scale(1.05);
+        }
+        .btn.play {
+            background-color: #4caf50;
+        }
+        .btn.play:hover {
+            background-color: #3d9e40;
+        }
+        .btn.reset {
+            background-color: #f44336;
+        }
+        .btn.reset:hover {
+            background-color: #d32f2f;
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .speed-control label {
+            font-size: 14px;
+        }
+        .mode-select {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .mode-btn {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .mode-btn.active {
+            background-color: #6a5acd;
+            color: white;
+        }
+        .pattern-display {
+            margin-top: 15px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: left;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .multi-select {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .multi-checkbox {
+            display: none;
+        }
+        .multi-label {
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .multi-checkbox:checked + .multi-label {
+            background-color: var(--color);
+            color: white;
+        }
+        .info-panel {
+            margin-top: 15px;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+        }
+        /* 각 구구단 색상 */
+        .color-1 { --color: #FF5252; background-color: #FF5252; }
+        .color-2 { --color: #FF9800; background-color: #FF9800; }
+        .color-3 { --color: #FFC107; background-color: #FFC107; }
+        .color-4 { --color: #4CAF50; background-color: #4CAF50; }
+        .color-5 { --color: #2196F3; background-color: #2196F3; }
+        .color-6 { --color: #673AB7; background-color: #673AB7; }
+        .color-7 { --color: #9C27B0; background-color: #9C27B0; }
+        .color-8 { --color: #795548; background-color: #795548; }
+        .color-9 { --color: #607D8B; background-color: #607D8B; }
+        
+        /* 발자국 효과 */
+        .footprint {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+        
+        /* 애니메이션 효과 */
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .jumping {
+            animation: jump 0.8s ease;
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+        
+        /* 반응형 조정 */
+        @media (max-width: 500px) {
+            .grid-cell {
+                font-size: 12px;
+            }
+            .character {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
+            .number-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+            .equation {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="header">
+            <h1>구구단 숫자판 점프 게임</h1>
+            <div class="subtitle">숫자 패턴으로 구구단을 배워요!</div>
+        </div>
+        
+        <div class="mode-select">
+            <button class="mode-btn active" data-mode="single">단일 구구단</button>
+            <button class="mode-btn" data-mode="compare">구구단 비교</button>
+            <button class="mode-btn" data-mode="pattern">패턴 탐색</button>
+        </div>
+        
+        <div id="single-mode" class="mode-content">
+            <div class="number-select">
+                <button class="number-btn" data-value="1">1</button>
+                <button class="number-btn" data-value="2">2</button>
+                <button class="number-btn" data-value="3">3</button>
+                <button class="number-btn" data-value="4">4</button>
+                <button class="number-btn" data-value="5">5</button>
+                <button class="number-btn" data-value="6">6</button>
+                <button class="number-btn" data-value="7">7</button>
+                <button class="number-btn" data-value="8">8</button>
+                <button class="number-btn" data-value="9">9</button>
+            </div>
+        </div>
+        
+        <div id="compare-mode" class="mode-content" style="display: none;">
+            <div class="multi-select">
+                <input type="checkbox" id="multi-1" class="multi-checkbox" data-value="1">
+                <label for="multi-1" class="multi-label" style="--color: #FF5252;">1단</label>
+                
+                <input type="checkbox" id="multi-2" class="multi-checkbox" data-value="2">
+                <label for="multi-2" class="multi-label" style="--color: #FF9800;">2단</label>
+                
+                <input type="checkbox" id="multi-3" class="multi-checkbox" data-value="3">
+                <label for="multi-3" class="multi-label" style="--color: #FFC107;">3단</label>
+                
+                <input type="checkbox" id="multi-4" class="multi-checkbox" data-value="4">
+                <label for="multi-4" class="multi-label" style="--color: #4CAF50;">4단</label>
+                
+                <input type="checkbox" id="multi-5" class="multi-checkbox" data-value="5">
+                <label for="multi-5" class="multi-label" style="--color: #2196F3;">5단</label>
+                
+                <input type="checkbox" id="multi-6" class="multi-checkbox" data-value="6">
+                <label for="multi-6" class="multi-label" style="--color: #673AB7;">6단</label>
+                
+                <input type="checkbox" id="multi-7" class="multi-checkbox" data-value="7">
+                <label for="multi-7" class="multi-label" style="--color: #9C27B0;">7단</label>
+                
+                <input type="checkbox" id="multi-8" class="multi-checkbox" data-value="8">
+                <label for="multi-8" class="multi-label" style="--color: #795548;">8단</label>
+                
+                <input type="checkbox" id="multi-9" class="multi-checkbox" data-value="9">
+                <label for="multi-9" class="multi-label" style="--color: #607D8B;">9단</label>
+            </div>
+        </div>
+        
+        <div id="pattern-mode" class="mode-content" style="display: none;">
+            <div class="info-panel">
+                다양한 구구단 패턴을 탐색해보세요. 각 구구단의 특별한 규칙성을 발견할 수 있어요!
+            </div>
+            <div class="number-select">
+                <button class="number-btn pattern-btn" data-value="1">1</button>
+                <button class="number-btn pattern-btn" data-value="2">2</button>
+                <button class="number-btn pattern-btn" data-value="3">3</button>
+                <button class="number-btn pattern-btn" data-value="4">4</button>
+                <button class="number-btn pattern-btn" data-value="5">5</button>
+                <button class="number-btn pattern-btn" data-value="6">6</button>
+                <button class="number-btn pattern-btn" data-value="7">7</button>
+                <button class="number-btn pattern-btn" data-value="8">8</button>
+                <button class="number-btn pattern-btn" data-value="9">9</button>
+            </div>
+            <div class="pattern-display" id="pattern-info">
+                구구단을 선택하면 패턴 정보가 여기에 표시됩니다.
+            </div>
+        </div>
+
+        <div class="equation" id="equation"></div>
+        
+        <div class="grid-container" id="grid-container">
+            <!-- 자바스크립트로 그리드 생성 -->
+        </div>
+        
+        <div class="speed-control">
+            <label for="speed">속도 조절:</label>
+            <input type="range" id="speed" min="1" max="10" value="5">
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn play" id="play-btn">시작</button>
+            <button class="btn" id="step-btn">한 칸씩</button>
+            <button class="btn reset" id="reset-btn">초기화</button>
+        </div>
+    </div>
+
+    <script>
+        // 게임 상태
+        const gameState = {
+            mode: 'single',
+            selectedNumber: null,
+            selectedNumbers: [],
+            currentStep: 0,
+            maxStep: 12,
+            isPlaying: false,
+            speed: 5,
+            characterPosition: null
+        };
+
+        // DOM 요소
+        const gridContainer = document.getElementById('grid-container');
+        const equation = document.getElementById('equation');
+        const playBtn = document.getElementById('play-btn');
+        const stepBtn = document.getElementById('step-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const speedControl = document.getElementById('speed');
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const modeContents = document.querySelectorAll('.mode-content');
+        const numberButtons = document.querySelectorAll('.number-btn');
+        const patternButtons = document.querySelectorAll('.pattern-btn');
+        const multiCheckboxes = document.querySelectorAll('.multi-checkbox');
+        const patternInfo = document.getElementById('pattern-info');
+
+        // 그리드 생성
+        function createGrid() {
+            gridContainer.innerHTML = '';
+            for (let i = 1; i <= 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.textContent = i;
+                cell.dataset.number = i;
+                cell.addEventListener('click', () => cellClick(i));
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        // 셀 클릭 이벤트
+        function cellClick(number) {
+            if (gameState.mode === 'single' && gameState.selectedNumber) {
+                // 배수인지 확인
+                if (number % gameState.selectedNumber === 0) {
+                    const step = number / gameState.selectedNumber;
+                    highlightCell(number, gameState.selectedNumber);
+                    showEquation(gameState.selectedNumber, step);
+                    moveCharacter(number);
+                }
+            }
+        }
+
+        // 모드 변경
+        function changeMode(mode) {
+            gameState.mode = mode;
+            
+            // 모드 버튼 상태 변경
+            modeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            
+            // 모드 콘텐츠 표시/숨김
+            modeContents.forEach(content => {
+                if (content.id === `${mode}-mode`) {
+                    content.style.display = 'block';
+                } else {
+                    content.style.display = 'none';
+                }
+            });
+            
+            // 그리드 초기화
+            resetGrid();
+            
+            // 모드별 초기 설정
+            if (mode === 'single') {
+                gameState.selectedNumber = null;
+                numberButtons.forEach(btn => btn.classList.remove('active'));
+            } else if (mode === 'compare') {
+                gameState.selectedNumbers = [];
+                multiCheckboxes.forEach(checkbox => checkbox.checked = false);
+            } else if (mode === 'pattern') {
+                patternButtons.forEach(btn => btn.classList.remove('active'));
+                showPatternInfo(null);
+            }
+        }
+
+        // 단일 구구단 선택
+        function selectNumber(number) {
+            gameState.selectedNumber = number;
+            gameState.currentStep = 0;
+            
+            // 버튼 상태 업데이트
+            numberButtons.forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.value) === number);
+            });
+            
+            // 그리드 초기화 및 첫 번째 셀 하이라이트
+            resetGrid();
+            if (number) {
+                moveCharacter(number);
+                highlightCell(number, number);
+                showEquation(number, 1);
+            }
+        }
+
+        // 패턴 구구단 선택
+        function selectPatternNumber(number) {
+            // 버튼 상태 업데이트
+            patternButtons.forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.value) === number);
+            });
+            
+            // 그리드 초기화 및 패턴 표시
+            resetGrid();
+            if (number) {
+                for (let i = 1; i <= 10; i++) {
+                    const cellNumber = number * i;
+                    if (cellNumber <= 100) {
+                        highlightCell(cellNumber, number);
+                    }
+                }
+                showPatternInfo(number);
+            }
+        }
+
+        // 멀티 구구단 선택
+        function toggleMultiNumber(number, checked) {
+            if (checked) {
+                if (!gameState.selectedNumbers.includes(number)) {
+                    gameState.selectedNumbers.push(number);
+                }
+            } else {
+                gameState.selectedNumbers = gameState.selectedNumbers.filter(n => n !== number);
+            }
+            
+            // 그리드 초기화 및 모든 선택 구구단 표시
+            resetGrid();
+            gameState.selectedNumbers.forEach(num => {
+                for (let i = 1; i <= 10; i++) {
+                    const cellNumber = num * i;
+                    if (cellNumber <= 100) {
+                        highlightCell(cellNumber, num);
+                    }
+                }
+            });
+        }
+
+        // 셀 하이라이트
+        function highlightCell(number, tableNumber) {
+            if (number > 100) return;
+            
+            const cell = document.querySelector(`.grid-cell[data-number="${number}"]`);
+            if (cell) {
+                cell.classList.add('highlighted');
+                cell.classList.add(`color-${tableNumber}`);
+                
+                // 발자국 효과 추가
+                addFootprint(cell, tableNumber);
+            }
+        }
+
+        // 발자국 효과 추가
+        function addFootprint(cell, tableNumber) {
+            const footprint = document.createElement('div');
+            footprint.className = `footprint color-${tableNumber}`;
+            
+            // 랜덤 위치에 발자국 배치
+            const xOffset = Math.random() * 20 - 10;
+            const yOffset = Math.random() * 20 - 10;
+            
+            footprint.style.left = `calc(50% + ${xOffset}px)`;
+            footprint.style.top = `calc(50% + ${yOffset}px)`;
+            
+            cell.appendChild(footprint);
+        }
+
+        // 캐릭터 이동
+        function moveCharacter(number) {
+            // 이전 캐릭터 제거
+            const prevCharacter = document.querySelector('.character');
+            if (prevCharacter) {
+                prevCharacter.remove();
+            }
+            
+            const cell = document.querySelector(`.grid-cell[data-number="${number}"]`);
+            if (cell) {
+                gameState.characterPosition = number;
+                
+                const character = document.createElement('div');
+                character.className = 'character jumping';
+                character.textContent = gameState.selectedNumber;
+                
+                cell.appendChild(character);
+                cell.classList.add('pulse');
+                
+                // 애니메이션 종료 후 클래스 제거
+                setTimeout(() => {
+                    cell.classList.remove('pulse');
+                }, 500);
+            }
+        }
+
+        // 구구단 식 표시
+        function showEquation(number, step) {
+            equation.textContent = `${number} × ${step} = ${number * step}`;
+        }
+
+        // 그리드 초기화
+        function resetGrid() {
+            // 하이라이트 제거
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                cell.className = 'grid-cell';
+                
+                // 발자국 제거
+                const footprints = cell.querySelectorAll('.footprint');
+                footprints.forEach(fp => fp.remove());
+            });
+            
+            // 캐릭터 제거
+            const character = document.querySelector('.character');
+            if (character) {
+                character.remove();
+            }
+            
+            // 상태 초기화
+            gameState.currentStep = 0;
+            gameState.characterPosition = null;
+            
+            // 구구단 식 초기화
+            equation.textContent = '';
+        }
+
+        // 자동 플레이
+        async function autoPlay() {
+            if (!gameState.selectedNumber || gameState.mode !== 'single') return;
+            
+            gameState.isPlaying = true;
+            playBtn.textContent = '정지';
+            
+            while (gameState.isPlaying && gameState.currentStep < gameState.maxStep) {
+                await nextStep();
+                
+                // 딜레이 (속도에 따라 조정)
+                const delay = 1100 - (gameState.speed * 100);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+            
+            // 플레이 완료
+            gameState.isPlaying = false;
+            playBtn.textContent = '시작';
+        }
+
+        // 다음 단계
+        async function nextStep() {
+            if (!gameState.selectedNumber || gameState.mode !== 'single') return;
+            
+            gameState.currentStep++;
+            const nextNumber = gameState.selectedNumber * gameState.currentStep;
+            
+            if (nextNumber <= 100) {
+                moveCharacter(nextNumber);
+                highlightCell(nextNumber, gameState.selectedNumber);
+                showEquation(gameState.selectedNumber, gameState.currentStep);
+                
+                return true;
+            } else {
+                // 범위 초과시 정지
+                gameState.isPlaying = false;
+                playBtn.textContent = '시작';
+                return false;
+            }
+        }
+
+        // 패턴 정보 표시
+        function showPatternInfo(number) {
+            if (!number) {
+                patternInfo.textContent = '구구단을 선택하면 패턴 정보가 여기에 표시됩니다.';
+                return;
+            }
+            
+            let info = '';
+            
+            switch(number) {
+                case 1:
+                    info = '1단: 모든 숫자가 자기 자신이 됩니다. 1×N = N';
+                    break;
+                case 2:
+                    info = '2단: 모든 짝수가 표시됩니다. 일의 자리는 2, 4, 6, 8, 0 순서로 반복됩니다.';
+                    break;
+                case 3:
+                    info = '3단: 각 결과의 자리수를 모두 더하면 3의 배수가 됩니다. 예: 3×9=27 → 2+7=9 (3의 배수)';
+                    break;
+                case 4:
+                    info = '4단: 모든 결과가 4의 배수입니다. 일의 자리는 4, 8, 2, 6, 0 순서로 반복됩니다.';
+                    break;
+                case 5:
+                    info = '5단: 모든 결과의 일의 자리는 0 또는 5로 끝납니다. 5, 10, 15, 20...';
+                    break;
+                case 6:
+                    info = '6단: 6×N = 3×N×2 입니다. 3단의 결과에 2를 곱한 것과 같습니다.';
+                    break;
+                case 7:
+                    info = '7단: 특이한 패턴! 일의 자리가 7, 4, 1, 8, 5, 2, 9, 6, 3, 0 순서로 변합니다.';
+                    break;
+                case 8:
+                    info = '8단: 모든 결과는 8의 배수입니다. 4단의 결과에 2를 곱한 것과 같습니다.';
+                    break;
+                case 9:
+                    info = '9단: 각 결과의 자리수를 모두 더하면 항상 9가 됩니다. 예: 9×9=81 → 8+1=9';
+                    break;
+                default:
+                    info = '패턴 정보가 없습니다.';
+            }
+            
+            patternInfo.textContent = info;
+        }
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            // 모드 버튼 이벤트
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => changeMode(btn.dataset.mode));
+            });
+            
+            // 단일 구구단 버튼 이벤트
+            numberButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectNumber(parseInt(btn.dataset.value));
+                });
+            });
+            
+            // 패턴 구구단 버튼 이벤트
+            patternButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectPatternNumber(parseInt(btn.dataset.value));
+                });
+            });
+            
+            // 멀티 체크박스 이벤트
+            multiCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    toggleMultiNumber(parseInt(checkbox.dataset.value), checkbox.checked);
+                });
+            });
+            
+            // 시작/정지 버튼
+            playBtn.addEventListener('click', () => {
+                if (gameState.isPlaying) {
+                    gameState.isPlaying = false;
+                    playBtn.textContent = '시작';
+                } else {
+                    autoPlay();
+                }
+            });
+            
+            // 한 칸씩 버튼
+            stepBtn.addEventListener('click', nextStep);
+            
+            // 초기화 버튼
+            resetBtn.addEventListener('click', () => {
+                resetGrid();
+                if (gameState.mode === 'single' && gameState.selectedNumber) {
+                    moveCharacter(gameState.selectedNumber);
+                    highlightCell(gameState.selectedNumber, gameState.selectedNumber);
+                    showEquation(gameState.selectedNumber, 1);
+                    gameState.currentStep = 1;
+                }
+            });
+            
+            // 속도 조절
+            speedControl.addEventListener('input', () => {
+                gameState.speed = parseInt(speedControl.value);
+            });
+        }
+
+        // 초기화
+        function init() {
+            createGrid();
+            setupEventListeners();
+            changeMode('single');
+        }
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
